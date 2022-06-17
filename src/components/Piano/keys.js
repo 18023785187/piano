@@ -3,7 +3,7 @@
 export const keyMap = [
   {
     pitch: 0,
-    keys: ['A0', 'A#1'],
+    keys: ['A0', 'A#0'],
   },
   {
     pitch: 1,

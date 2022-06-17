@@ -22,7 +22,7 @@
         :key="key"
         @mousedown="play(key)"
       >
-        <!-- <span>{{ key }}</span> -->
+        <span>{{ key }}</span>
       </div>
       <!-- 钢琴键 end -->
     </div>
@@ -32,7 +32,9 @@
 
 <script>
 import { keyMap, noteMap, noteFlags, noteHighs } from "./keys";
-import { music } from "./music";
+import { music, Auto } from "./music";
+import { left } from "./left";
+import { right } from "./right";
 
 export default {
   name: "Piano",
@@ -47,10 +49,27 @@ export default {
     document.addEventListener("keydown", (e) => this.keydown(e));
     document.addEventListener("keyup", (e) => this.keyup(e));
     document.addEventListener("mouseup", () => this.stop());
+
+    const auto = new Auto(
+      67,
+      {
+        left: left,
+        right: right,
+      },
+      {
+        play: (key) => (this.noteHighs[key] = true),
+        stop: (key) => (this.noteHighs[key] = false),
+      }
+    );
+    setTimeout(() => {
+      auto.left.volume = 0.4;
+      auto.right.start();
+      auto.left.start();
+    }, 3000);
   },
   methods: {
     play(key) {
-      this.prevKey = key
+      this.prevKey = key;
       music[key].start();
       this.noteHighs[key] = true;
     },
