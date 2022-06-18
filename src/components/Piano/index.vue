@@ -1,32 +1,37 @@
 <template>
-  <div id="piano">
-    <!-- 钢琴单元度 start -->
-    <div class="unit-degree" v-for="degree in keyMap" :key="degree.pitch">
-      <!-- 钢琴键 start -->
-      <div
-        class="key"
-        :class="{
-          'high-key': degree.pitch !== 0 && index === 1,
-          'white-key': key.length === 2,
-          'black-key': key.length !== 2,
-          'black-key1': degree.pitch === 0 && index === 1,
-          'black-key2': index === 2,
-          'black-key4': index === 4,
-          'black-key7': index === 7,
-          'black-key9': index === 9,
-          'black-key11': index === 11,
-          'white-down': noteHighs[key] && key.length === 2,
-          'black-down': noteHighs[key] && key.length !== 2,
-        }"
-        v-for="(key, index) in degree.keys"
-        :key="key"
-        @mousedown="play(key)"
-      >
-        <span>{{ key }}</span>
+  <div>
+    <div id="piano">
+      <!-- 钢琴单元度 start -->
+      <div class="unit-degree" v-for="degree in keyMap" :key="degree.pitch">
+        <!-- 钢琴键 start -->
+        <div
+          class="key"
+          :class="{
+            'high-key': degree.pitch !== 0 && index === 1,
+            'white-key': key.length === 2,
+            'black-key': key.length !== 2,
+            'black-key1': degree.pitch === 0 && index === 1,
+            'black-key2': index === 2,
+            'black-key4': index === 4,
+            'black-key7': index === 7,
+            'black-key9': index === 9,
+            'black-key11': index === 11,
+            'white-down': noteHighs[key] && key.length === 2,
+            'black-down': noteHighs[key] && key.length !== 2,
+          }"
+          v-for="(key, index) in degree.keys"
+          :key="key"
+          @mousedown="play(key)"
+        >
+          <span>{{ key }}</span>
+        </div>
+        <!-- 钢琴键 end -->
       </div>
-      <!-- 钢琴键 end -->
+      <!-- 钢琴单元度 end -->
     </div>
-    <!-- 钢琴单元度 end -->
+    <button @click="auto">自动弹奏,等几秒再按，音乐需要加载，只能按一次</button>
+    <button @click="left">左声道</button>
+    <button @click="right">右声道</button>
   </div>
 </template>
 
@@ -35,6 +40,7 @@ import { keyMap, noteMap, noteFlags, noteHighs } from "./keys";
 import { music, Auto } from "./music";
 import { left } from "./left";
 import { right } from "./right";
+let auto 
 
 export default {
   name: "Piano",
@@ -49,23 +55,6 @@ export default {
     document.addEventListener("keydown", (e) => this.keydown(e));
     document.addEventListener("keyup", (e) => this.keyup(e));
     document.addEventListener("mouseup", () => this.stop());
-
-    const auto = new Auto(
-      67,
-      {
-        left: left,
-        right: right,
-      },
-      {
-        play: (key) => (this.noteHighs[key] = true),
-        stop: (key) => (this.noteHighs[key] = false),
-      }
-    );
-    setTimeout(() => {
-      auto.left.volume = 0.4;
-      auto.right.start();
-      auto.left.start();
-    }, 3000);
   },
   methods: {
     play(key) {
@@ -99,6 +88,39 @@ export default {
         this.noteHighs[noteMap[key]] = false;
       }
     },
+    // 测试
+    auto() {
+      auto = new Auto(
+        67,
+        {
+          left: left,
+          right: right,
+        },
+        {
+          play: (key) => (this.noteHighs[key] = true),
+          stop: (key) => (this.noteHighs[key] = false),
+        }
+      );
+      auto.left.volume = 0.4;
+      auto.right.start();
+      auto.left.start();
+    },
+    left() {
+      if(!auto) return
+      if(auto.left.volume === 0.4) {
+        auto.left.volume = 0
+      } else {
+        auto.left.volume = 0.4
+      }
+    },
+    right() {
+      if(!auto) return
+      if(auto.right.volume === 1) {
+        auto.right.volume = 0
+      } else {
+        auto.right.volume = 1
+      }
+    }
   },
   beforeDestroy() {
     document.removeEventListener("keydown", (e) => this.keydown(e));
