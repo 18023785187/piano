@@ -37,9 +37,9 @@
 
 <script>
 import { keyMap, noteMap, noteFlags, noteHighs } from "./keys";
-import { music, Auto } from "./music";
-import { left } from "./left";
-import { right } from "./right";
+import { music } from "./music";
+import { Auto } from './Auto'
+import { 完 } from "@/assets/music-score/完";
 let auto 
 
 export default {
@@ -91,35 +91,24 @@ export default {
     // 测试
     auto() {
       auto = new Auto(
-        67,
+        65,
         {
-          left: left,
-          right: right,
+          left: 完.left,
+          right: 完.right,
         },
         {
           play: (key) => (this.noteHighs[key] = true),
           stop: (key) => (this.noteHighs[key] = false),
         }
       );
-      auto.left.volume = 0.4;
-      auto.right.start();
-      auto.left.start();
+      auto.leftVolume = 0.4;
+      auto.play()
     },
     left() {
-      if(!auto) return
-      if(auto.left.volume === 0.4) {
-        auto.left.volume = 0
-      } else {
-        auto.left.volume = 0.4
-      }
+      auto.stop()
     },
     right() {
-      if(!auto) return
-      if(auto.right.volume === 1) {
-        auto.right.volume = 0
-      } else {
-        auto.right.volume = 1
-      }
+      auto.rhythm = auto.rhythm + 1
     }
   },
   beforeDestroy() {

@@ -96,7 +96,7 @@ export class Auto {
         return new Promise((resolve) => {
           for (let j = 0; j < sounds.length; ++j) {
             const sound = sounds[j]
-            music[sound[0]].start(volume)
+            music[sound].start(volume)
           }
           setTimeout(() => {
             resolve()
