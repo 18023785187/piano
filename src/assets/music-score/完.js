@@ -1,4 +1,5 @@
 export const 完 = {
+  name: '完-陈奕迅',
   rhythm: 65,
   left: [
     // 0

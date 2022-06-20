@@ -32,9 +32,7 @@ const getBuffer = (url) => {
   })
 }
 
-export const music = {} // 暴露的音源接口
-
-const FADE_OUT_TIME = 200; // 声音淡出时间
+export const music = {}; // 暴露的音源接口
 (async () => {
   const keyMap = Object.keys(audioDatas)
   for (let i = 0; i < keyMap.length; ++i) {
@@ -59,9 +57,8 @@ const FADE_OUT_TIME = 200; // 声音淡出时间
       stop() { // 该源慢慢停止
         if (!source) return
         const delay = audioContext.currentTime - currentTime
-        gain.gain.linearRampToValueAtTime(gain.gain.value / 10, audioContext.currentTime + delay)
-        gain.gain.linearRampToValueAtTime(0.0, audioContext.currentTime + delay + FADE_OUT_TIME / 1000)
-        source.stop(audioContext.currentTime + FADE_OUT_TIME / 1000)
+        gain.gain.linearRampToValueAtTime(0.0, audioContext.currentTime + delay * 2)
+        source.stop(audioContext.currentTime + delay * 2)
       }
     }
   }

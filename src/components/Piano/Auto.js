@@ -1,7 +1,7 @@
 
 import { music } from './music'
 
-const STEP = 0.125 // 最小步长为 1/32 分音符🎶
+const STEP = 0.125 // 由于 js 计算精度限制，最小步长为 1/32 分音符🎶
 
 export class Auto {
   constructor(rhythm, spectrum, hooks) {
@@ -16,7 +16,7 @@ export class Auto {
 
   set rhythm(newRhythm) {
     this._rhythm = newRhythm
-    this._rhythmTime = (60 / this._rhythm) * 1000
+    this._rhythmTime = Math.floor((60 / this._rhythm) * 1000)
   }
   get rhythm() {
     return this._rhythm
@@ -33,9 +33,7 @@ export class Auto {
 
       let progress = 0
       for (let i = 0; i < hand.length; ++i) {
-        const sounds = []
-        for (let j = 0; j < hand[i][1].length; ++j) sounds.push(music[hand[i][1][j]])
-        player.push([progress, sounds])
+        player.push([progress, [...hand[i][1]], hand[i][2] ? hand[i][2] : hand[i][0], hand[i][3]])
         progress += hand[i][0]
       }
 
@@ -57,7 +55,8 @@ export class Auto {
     this._timer = setTimeout(() => {
       this.progress = this._progress + STEP
       this.play()
-    }, this._rhythmTime * STEP)
+      console.log(Math.floor(this._rhythmTime * STEP))
+    }, Math.floor(this._rhythmTime * STEP))
   }
   stop() {
     clearTimeout(this._timer)
@@ -87,7 +86,21 @@ export class Auto {
       const fragment = player.player[pos]
       if (this._progress === fragment[0]) {
         for (let i = 0; i < fragment[1].length; ++i) {
-          fragment[1][i].start(player.volume)
+          if (this._player_map.has(fragment[1][i])) {
+            this._hooks?.stop?.(fragment[1][i])
+            clearTimeout(fragment[1][i])
+            this._player_map.delete(fragment[1][i])
+          }
+
+          this._hooks?.play?.(fragment[1][i])
+          music[fragment[1][i]].start(fragment[3] != null ? fragment[3] : player.volume)
+
+          const stopTimer = setTimeout(() => {
+            this._hooks?.stop?.(fragment[1][i])
+            music[fragment[1][i]].stop()
+            this._player_map.delete(fragment[1][i])
+          }, this._rhythmTime * fragment[2])
+          this._player_map.set(fragment[1][i], stopTimer)
         }
         player.pos++
       }

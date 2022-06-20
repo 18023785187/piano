@@ -29,9 +29,9 @@
       </div>
       <!-- 钢琴单元度 end -->
     </div>
-    <button @click="auto">自动弹奏,等几秒再按，音乐需要加载，只能按一次</button>
-    <button @click="left">左声道</button>
-    <button @click="right">右声道</button>
+    <button @click="auto">PLAY</button>
+    <button @click="left">STOP</button>
+    <button @click="right">😊</button>
   </div>
 </template>
 
@@ -39,6 +39,7 @@
 import { keyMap, noteMap, noteFlags, noteHighs } from "./keys";
 import { music } from "./music";
 import { Auto } from './Auto'
+import { 菊次郎的夏天 } from "@/assets/music-score/菊次郎的夏天";
 import { 完 } from "@/assets/music-score/完";
 let auto 
 
@@ -91,17 +92,18 @@ export default {
     // 测试
     auto() {
       auto = new Auto(
-        65,
+        90,
         {
-          left: 完.left,
-          right: 完.right,
+          left: 菊次郎的夏天.left,
+          right: 菊次郎的夏天.right,
         },
         {
           play: (key) => (this.noteHighs[key] = true),
           stop: (key) => (this.noteHighs[key] = false),
         }
       );
-      auto.leftVolume = 0.4;
+      auto.leftVolume = 0.3;
+      auto.rightVolume = 0.8;
       auto.play()
     },
     left() {
