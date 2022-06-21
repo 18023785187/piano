@@ -21,3 +21,8 @@ body {
   user-select: none;
   /*用户是否能够选中文本*/
 }
+
+.el-loading-spinner .path, .el-loading-text {
+  stroke: #fff !important;
+  color: #fff !important;
+}
