@@ -87,7 +87,7 @@
           :min="0"
           :max="maxRhythm"
           :step="0.125"
-          @input="skipProgress"
+          @input="step"
         ></el-slider>
       </div>
     </div>
@@ -192,9 +192,9 @@ export default {
       setPianoVolume(newVolume);
     },
     // 跳转进度
-    skipProgress(newProgress) {
-      if (this.isDefineAuto()) {
-        auto.skip(newProgress);
+    step(newProgress) {
+      if(this.isDefineAuto()) {
+        auto.progress = newProgress
       }
     },
   },
