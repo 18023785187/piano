@@ -307,13 +307,3 @@ export const 完 = {
     [0.5, ["D#4"]],
   ]
 }
-
-// let sum = 0
-// let sum2 = 0
-// for(let i = 0; i < 完.left.length; ++i) {
-//   sum +=  完.left[i][0]
-// }
-// for(let i = 0; i < 完.right.length; ++i) {
-//   sum2 +=  完.right[i][0]
-// }
-// console.log(sum, sum2)

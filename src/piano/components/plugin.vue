@@ -200,6 +200,7 @@ export default {
       auto.rightFlag = this.rightFlag;
       this.rhythm = score.rhythm;
       this.maxRhythm = auto.maxRhythm;
+      this.progress = 0;
       this.play();
 
       this.scoreIndex = index;
@@ -427,7 +428,10 @@ export default {
     }
   }
 
-  .diff, .show-key, .left, .right {
+  .diff,
+  .show-key,
+  .left,
+  .right {
     cursor: pointer;
   }
 }

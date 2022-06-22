@@ -3,6 +3,14 @@ const audioContext = new AudioContext({ latencyHint: 'interactive' }) // 创建�
 const pianoGain = audioContext.createGain()
 pianoGain.connect(audioContext.destination)
 
+const limiterNode = audioContext.createDynamicsCompressor() // 声音压缩器，避免失真
+limiterNode.threshold.value = -10
+limiterNode.knee.value = 0
+limiterNode.ratio.value = 20
+limiterNode.attack.value = 0
+limiterNode.release.value = 0.1
+pianoGain.connect(limiterNode)
+
 /**
  * 设置总音量
  * @param {number} volume 
