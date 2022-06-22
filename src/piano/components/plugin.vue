@@ -1,17 +1,17 @@
 <template>
   <div
     id="plugin"
-    v-loading.fullscreen.lock="soundLoading"
-    element-loading-text="音频加载中"
+    v-loading.fullscreen.lock="residue !== 0"
+    :element-loading-text="'音频加载中，剩余加载数：' + residue"
     element-loading-background="rgba(0, 0, 0, 0.8)"
   >
-    <!---->
+    <!-- 音符 -->
     <div class="show-key btn" @click="showKey">
-      <span>{{ isShowKey ? "隐藏音符" : "显示音符" }}</span>
+      <span>🎼 {{ isShowKey ? "隐藏音符" : "显示音符" }}</span>
     </div>
-    <!---->
+    <!-- 音效 -->
     <div class="sound-select btn">
-      <span>音效选择</span>
+      <span>🎶 音效选择</span>
       <div class="selector">
         <div class="title">音效 目录</div>
         <div class="list">
@@ -27,9 +27,9 @@
         </div>
       </div>
     </div>
-    <!---->
+    <!-- 自动弹奏 -->
     <div class="auto-play btn">
-      <span>自动弹奏</span>
+      <span>🤘 自动弹奏</span>
       <div class="selector">
         <div class="title">歌曲 目录</div>
         <div class="list">
@@ -45,11 +45,23 @@
         </div>
       </div>
     </div>
-    <!---->
+    <!-- 播放、停止 -->
     <div class="play btn" @click="play">
-      <span>{{ isPlay ? "停止" : "播放" }}</span>
+      <span>{{ isPlay ? "⏸️ 停止" : "▶️ 播放" }}</span>
     </div>
-    <!---->
+    <!-- 按下颜色 -->
+    <div class="diff btn" @click="diff">
+      <span>💅 {{ diffFlag ? "关闭" : "开启" }}按下颜色</span>
+    </div>
+    <!-- 左手 -->
+    <div class="left btn" @click="setLeftFlag">
+      <span>👈 {{ leftFlag ? "关闭" : "开启" }}左手</span>
+    </div>
+    <!-- 右手 -->
+    <div class="right btn" @click="setRightFlag">
+      <span>👉 {{ rightFlag ? "关闭" : "开启" }}右手</span>
+    </div>
+    <!-- 节拍 -->
     <div class="rhythm btn">
       <div class="selector">
         <el-slider
@@ -61,9 +73,9 @@
           @change="rhythmChange"
         ></el-slider>
       </div>
-      <span>节拍器</span>
+      <span>👏 节拍</span>
     </div>
-    <!---->
+    <!-- 音量 -->
     <div class="volume btn">
       <div class="selector">
         <el-slider
@@ -76,11 +88,11 @@
           @input="volumeChange"
         ></el-slider>
       </div>
-      <span>音量</span>
+      <span>{{ volumeEmoji }} 音量</span>
     </div>
-    <!---->
+    <!-- 进度 -->
     <div class="progress-bar btn">
-      <span>进度：</span>
+      <span>🎹 进度：</span>
       <div class="progress">
         <el-slider
           v-model="progress"
@@ -100,18 +112,21 @@ import { setPianoVolume, tags_map, load } from "../js/music";
 import { scoreMap } from "@/assets/music-score/score-map";
 import { Auto } from "../js/Auto";
 
-let auto = null;
+let auto = null; // 播放器全局唯一
 
 export default {
   name: "Plugin",
   props: {
     isShowKey: Boolean, // 音符显示阀
     curSound: String, // 当前音频标识
+    diffFlag: Boolean, // 手颜色
   },
   data() {
     return {
-      soundLoading: false, // 加载音频阀
+      residue: 0, // 剩余加载音频数，0 表示已加载完成
       isPlay: false, // 是否播放
+      leftFlag: true, // 左手弹奏
+      rightFlag: true, // 右手弹奏
       rhythm: 0, // 节拍
       volume: 1, // 音量
       scoreMap: Object.freeze({ ...scoreMap }),
@@ -123,6 +138,15 @@ export default {
   },
   created() {
     this.changeSound("经典钢琴");
+  },
+  computed: {
+    // 音量 emoji
+    volumeEmoji() {
+      if (this.volume <= 0) return "🔇";
+      else if (this.volume <= 0.25) return "🔈";
+      else if (this.volume <= 0.5) return "🔉";
+      else return "🔊";
+    },
   },
   methods: {
     // 检测 auto 是否存在
@@ -137,15 +161,12 @@ export default {
     changeSound(tag) {
       if (this.curSound === tag) return;
 
-      this.soundLoading = true;
       if (this.isDefineAuto()) {
         this.play();
         auto.sound = tag;
       }
       this.$emit("changeSound", tag);
-      load(tag, (residue) => {
-        if (residue === 0) this.soundLoading = false;
-      });
+      load(tag, (sum) => (this.residue = sum), (residue) => (this.residue = residue));
     },
     // 自动弹奏
     autoPlay(score, index) {
@@ -160,14 +181,16 @@ export default {
           right: score.right,
         },
         {
-          play: (key) => this.$emit("play", key),
+          play: (key, isLeft) => this.$emit("play", key, isLeft),
           stop: (key) => this.$emit("stop", key),
-          change: (progress) => this.progress = progress,
+          change: (progress) => (this.progress = progress),
           end: () => this.play(),
         }
       );
       auto.leftVolume = score.leftVolume;
       auto.rightVolume = score.rightVolume;
+      auto.leftFlag = this.leftFlag;
+      auto.rightFlag = this.rightFlag;
       this.rhythm = score.rhythm;
       this.maxRhythm = auto.maxRhythm;
       this.play();
@@ -181,6 +204,24 @@ export default {
       !this.isPlay ? auto.play() : auto.stop();
       this.isPlay = !this.isPlay;
     },
+    // 是否开启手颜色
+    diff() {
+      this.$emit("diff", !this.diffFlag);
+    },
+    // 左手弹奏
+    setLeftFlag() {
+      this.leftFlag = !this.leftFlag;
+      if (this.isDefineAuto()) {
+        auto.leftFlag = this.leftFlag;
+      }
+    },
+    // 右手弹奏
+    setRightFlag() {
+      this.rightFlag = !this.rightFlag;
+      if (this.isDefineAuto()) {
+        auto.rightFlag = this.rightFlag;
+      }
+    },
     // 改变节拍
     rhythmChange(newRhythm) {
       if (!this.isDefineAuto()) return;
@@ -193,8 +234,8 @@ export default {
     },
     // 跳转进度
     step(newProgress) {
-      if(this.isDefineAuto()) {
-        auto.progress = newProgress
+      if (this.isDefineAuto()) {
+        auto.progress = newProgress;
       }
     },
   },
@@ -207,7 +248,7 @@ export default {
   align-items: center;
   position: relative;
   width: 100vw;
-  height: 5vh;
+  height: 6vh;
   padding: 0 3vw;
   font-size: 14px;
   box-sizing: border-box;
@@ -219,13 +260,12 @@ export default {
     color: #ddd;
     background: rgba(170, 187, 170, 0.35);
     border: 1px solid #898;
-    padding: 0.4vw;
+    padding: 0.6vw 0.8vw;
     margin-right: 0.4vw;
     line-height: 14px;
     border-radius: 3px;
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;
-    width: 100px;
     white-space: nowrap;
     transition: all 0.3s;
 
@@ -240,7 +280,7 @@ export default {
   .selector {
     display: none;
     position: absolute;
-    top: calc(-40vh - 0.4vw - 20px);
+    top: calc(-40vh - 0.6vw - 20px);
     left: 0;
     width: 20vw;
     height: 40vh;
@@ -320,7 +360,7 @@ export default {
   .volume {
     .selector {
       top: calc(-20vh - 0.4vw - 40px);
-      width: auto;
+      width: 100%;
       height: auto;
       padding: 20px 3px;
     }

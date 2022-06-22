@@ -1,12 +1,19 @@
 
 import { music } from './music'
 
-const STEP = 0.125 // 由于 js 计算精度限制，最小步长为 1/32 分音符🎶
+const STEP = 0.125 // 由于 js 计算精度限制，最小步长为 1/32 分音符 🎶
 
 /**
  * 自动播放器
  */
 export class Auto {
+  /**
+   * @typedef {{ play?: (key, isLeft) => void, stop?: (key) => void, change?: (progress) => void, end?: () => {} }} Hooks
+   * @param {string} sound 音频
+   * @param {number} rhythm 每分钟节拍数 
+   * @param {*} spectrum 曲谱
+   * @param {Hooks} hooks 钩子函数，分别有 每个音符的播放、结束，进度改变，播放结束钩子
+   */
   constructor(sound, rhythm, spectrum, hooks) {
     this.sound = sound // 音频
     this.rhythm = rhythm // 一分钟拍数
@@ -32,7 +39,7 @@ export class Auto {
 
   /**
    * 编译乐谱
-   * @param {*} spectrum 原始音谱
+   * @param {*} spectrum 原始曲谱
    * @returns 
    */
   compiler(spectrum) {
@@ -46,9 +53,10 @@ export class Auto {
       }
 
       return {
-        volume: 1,
-        player: player,
-        maxRhythm: progress
+        volume: 1, // 该谱的音量
+        flag: true, // 是否弹奏，false 的时候不会弹奏
+        player: player, // 播放器
+        maxRhythm: progress, // 最大累加拍数
       }
     }
 
@@ -64,7 +72,7 @@ export class Auto {
     if (this._progress == null) this.progress = 0
 
     this._timer = setTimeout(() => {
-      if (this._progress >= this.maxRhythm) {
+      if (this._progress >= this.maxRhythm) { // 播放结束
         this._progress = null
         this._hooks?.end?.()
         return
@@ -94,32 +102,44 @@ export class Auto {
   get rightVolume() {
     return this._spectrum.right.volume
   }
+  set leftFlag(newLeftFlag) {
+    this._spectrum.left.flag = newLeftFlag
+  }
+  get leftFlag() {
+    return this._spectrum.left.flag
+  }
+  set rightFlag(newRightFlag) {
+    this._spectrum.right.flag = newRightFlag
+  }
+  get rightFlag() {
+    return this._spectrum.right.flag
+  }
   /**
    * 设置进度并触发播放
    * @param {number} newProgress
    */
   set progress(newProgress) {
-    if(this._progress === newProgress) return
+    if (this._progress === newProgress) return
     this._progress = newProgress
-    handle.call(this, this._spectrum.left)
-    handle.call(this, this._spectrum.right)
+    this._spectrum.left.flag && handle.call(this, this._spectrum.left, true)
+    this._spectrum.right.flag && handle.call(this, this._spectrum.right, false)
 
     /**
-     * 检索音谱当前指针位置是否达到播放要求并处理
-     * @param {*} player 音谱
+     * 处理曲谱
+     * @param {*} player 曲谱
      */
-    function handle(player) {
-      const fragment = player.player[this._progress]
-      if (!fragment) return
-      const sounds = fragment[0]
+    function handle(player, isLeft) {
+      const fragment = player.player[this._progress] // 取出片段
+      if (!fragment) return // 没有匹配片段，返回
+      const sounds = fragment[0] // 取出音符数组
       for (let i = 0; i < sounds.length; ++i) {
-        if (this._player_map.has(sounds[i])) { // 如果准备播放的音阶正在播放，那么先停止播放
+        if (this._player_map.has(sounds[i])) { // 如果准备播放的音阶正在播放，那么先停止播放，避免冲突
           this._hooks?.stop?.(sounds[i])
           clearTimeout(this._player_map.get(sounds[i]))
           this._player_map.delete(sounds[i])
         }
 
-        this._hooks?.play?.(sounds[i])
+        this._hooks?.play?.(sounds[i], isLeft)
         music[this.sound][sounds[i]].start(fragment[2] != null ? fragment[2] : player.volume)
 
         const stopTimer = setTimeout(() => { // 根据时域设置停止该音阶播放的时间
@@ -127,7 +147,7 @@ export class Auto {
           music[this.sound][sounds[i]].stop()
           this._player_map.delete(sounds[i])
         }, this._rhythmTime * fragment[1])
-        this._player_map.set(sounds[i], stopTimer) // 把播放中的该音阶存入 this._player_map 中
+        this._player_map.set(sounds[i], stopTimer) // 把该播放中的音阶存入 this._player_map 中
       }
     }
   }

@@ -40,7 +40,7 @@ export const keyMap = [
 ]
 
 /**
- * 键位，格式: [key, shift]
+ * 按键键位映射，格式: [key, shift]
  */
 export const notes = {
   'A0': ['F1', false],
@@ -132,9 +132,9 @@ export const notes = {
   'B7': ['Numpad0', false],
   'C8': ['NumpadDecimal', false],
 }
-export const noteMap = {}
-export const noteFlags = {}
-export const noteHighs = {}
+export const noteMap = {} // 电脑键盘按键映射钢琴按键
+export const noteFlags = {} // 按键阀门
+export const noteHighs = {} // 按键高亮映射模板
 for(const key in notes) {
   const note = notes[key].join('')
   noteMap[note] = key

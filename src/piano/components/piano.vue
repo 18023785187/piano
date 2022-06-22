@@ -19,7 +19,10 @@
               'black-key11': index === 11,
               'white-down': noteHighs[key] && key.length === 2,
               'black-down': noteHighs[key] && key.length !== 2,
+              'diff-left-down': diffNoteHighsLeft[key],
+              'diff-right-down': diffNoteHighsRight[key],
             }"
+            :style="{ background: diffNoteHighsColor[key] }"
             v-for="(key, index) in degree.keys"
             :key="key"
             @mousedown="play(key)"
@@ -31,14 +34,32 @@
         <!-- 钢琴单元度 end -->
       </div>
     </div>
+    <!-- 功能扩展 start -->
     <Plugin
       :isShowKey="isShowKey"
       :curSound="curSound"
-      @play="(key) => (this.noteHighs[key] = true)"
-      @stop="(key) => (this.noteHighs[key] = false)"
-      @showKey="(isShowKey) => this.isShowKey = isShowKey"
-      @changeSound="(curSound) => this.curSound = curSound"
+      :diffFlag="diffFlag"
+      @play="
+        (key, isLeft) => {
+          this.noteHighs[key] = true;
+          diffFlag &&
+            (isLeft
+              ? (this.diffNoteHighsLeft[key] = true)
+              : (this.diffNoteHighsRight[key] = true));
+        }
+      "
+      @stop="
+        (key) => {
+          this.noteHighs[key] = false;
+          this.diffNoteHighsLeft[key] = false;
+          this.diffNoteHighsRight[key] = false;
+        }
+      "
+      @showKey="(isShowKey) => (this.isShowKey = isShowKey)"
+      @changeSound="(curSound) => (this.curSound = curSound)"
+      @diff="(diffFlag) => (this.diffFlag = diffFlag)"
     />
+    <!-- 功能扩展 end -->
   </div>
 </template>
 
@@ -56,31 +77,43 @@ export default {
   data() {
     return {
       isShowKey: true, // 是否显示音符
-      keyMap: Object.freeze({ ...keyMap }),
-      noteHighs: { ...noteHighs },
-      prevKey: null,
-      curSound: '',
+      keyMap: Object.freeze({ ...keyMap }), // 键映射
+      noteHighs: { ...noteHighs }, // 高亮标记
+      diffFlag: true, // 是否开启区别手势
+      diffNoteHighsColor: {}, // 单独按键高亮颜色
+      diffNoteHighsLeft: { ...noteHighs }, // 区别手势左
+      diffNoteHighsRight: { ...noteHighs }, // 区别手势右
+      prevKey: null, // 上一次按下的键
+      curSound: "", // 当前音频
     };
   },
   mounted() {
     document.addEventListener("keydown", (e) => this.keydown(e));
     document.addEventListener("keyup", (e) => this.keyup(e));
-    document.addEventListener("mouseup", () => this.stop());
+    document.addEventListener("mouseup", (e) => this.mouseup(e));
   },
   methods: {
+    // 播放
     play(key) {
       this.prevKey = key;
       music[this.curSound][key].start();
       this.noteHighs[key] = true;
+      if (this.diffFlag) {
+        this.diffNoteHighsColor[key] = this.randomColor();
+      }
     },
+    // 停止
     stop() {
       if (!this.prevKey) return;
 
       music[this.curSound][this.prevKey].stop();
       this.noteHighs[this.prevKey] = false;
+      this.diffNoteHighsColor[this.prevKey] = "";
       this.prevKey = null;
     },
+    // 键盘按下
     keydown(e) {
+      if (e.ctrlKey && e.code === "F5") return;
       e.preventDefault();
       const code = e.code;
       const shiftKey = e.shiftKey.toString();
@@ -89,8 +122,12 @@ export default {
         noteFlags[key] && music[this.curSound][noteMap[key]].start();
         noteFlags[key] = false;
         this.noteHighs[noteMap[key]] = true;
+        if (this.diffFlag) {
+          this.diffNoteHighsColor[noteMap[key]] = this.randomColor();
+        }
       }
     },
+    // 键盘松开
     keyup(e) {
       e.preventDefault();
       const code = e.code;
@@ -100,7 +137,18 @@ export default {
         noteFlags[key] = true;
         music[this.curSound][noteMap[key]].stop();
         this.noteHighs[noteMap[key]] = false;
+        this.diffNoteHighsColor[noteMap[key]] = "";
       }
+    },
+    // 鼠标按下
+    mouseup(e) {
+      this.stop();
+    },
+    // 随机颜色
+    randomColor() {
+      return `rgb(${Math.floor(Math.random() * 256)}, ${Math.floor(
+        Math.random() * 256
+      )}, ${Math.floor(Math.random() * 256)})`;
     },
   },
 };
@@ -114,7 +162,7 @@ export default {
 
   .piano-content {
     position: relative;
-    height: 95vh;
+    height: 94vh;
 
     #piano {
       position: absolute;
@@ -299,6 +347,15 @@ export default {
           }
         }
         /** 黑键按下 end */
+
+        /** 区别色 start */
+        .diff-left-down {
+          background: rgb(255, 144, 144) !important;
+        }
+        .diff-right-down {
+          background: rgb(73, 192, 252) !important;
+        }
+        /** 区别色 end */
 
         /** 钢琴键 end */
       }
