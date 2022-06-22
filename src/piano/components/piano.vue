@@ -231,7 +231,7 @@ export default {
           background-color: rgb(241, 241, 241);
           border: 0.1vw solid #000;
           box-sizing: border-box;
-          transition: transform 0.2s;
+          transition: all 0.2s;
 
           @media screen and (max-width: 780px) {
             span {
@@ -351,10 +351,10 @@ export default {
 
         /** 区别色 start */
         .diff-left-down {
-          background: rgb(255, 144, 144) !important;
+          background: rgb(211, 255, 144) !important;
         }
         .diff-right-down {
-          background: rgb(73, 192, 252) !important;
+          background: rgb(144, 170, 255) !important;
         }
         /** 区别色 end */
 
