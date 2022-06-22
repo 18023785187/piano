@@ -159,10 +159,11 @@ export default {
   width: 100vw;
   height: 100vh;
   background: radial-gradient(at center 40vh, rgb(59, 80, 84) 0%, rgb(0, 16, 20) 100%);
+  overflow: hidden;
 
   .piano-content {
     position: relative;
-    height: 94vh;
+    height: 90vh;
 
     #piano {
       position: absolute;

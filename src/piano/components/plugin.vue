@@ -245,10 +245,11 @@ export default {
 <style lang="less" scoped>
 #plugin {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  position: relative;
+  position: absolute;
+  bottom: 1vh;
   width: 100vw;
-  height: 6vh;
   padding: 0 3vw;
   font-size: 14px;
   box-sizing: border-box;
@@ -262,6 +263,7 @@ export default {
     border: 1px solid #898;
     padding: 0.6vw 0.8vw;
     margin-right: 0.4vw;
+    margin-top: 0.4vw;
     line-height: 14px;
     border-radius: 3px;
     -webkit-border-radius: 3px;
