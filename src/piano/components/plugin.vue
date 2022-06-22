@@ -5,10 +5,6 @@
     :element-loading-text="'音频加载中，剩余加载数：' + residue"
     element-loading-background="rgba(0, 0, 0, 0.8)"
   >
-    <!-- 音符 -->
-    <div class="show-key btn" @click="showKey">
-      <span>🎼 {{ isShowKey ? "隐藏音符" : "显示音符" }}</span>
-    </div>
     <!-- 音效 -->
     <div class="sound-select btn">
       <span>🎶 音效选择</span>
@@ -22,7 +18,8 @@
             :key="tag"
             @click="changeSound(tag)"
           >
-            {{ "🎵 - " + tag }}
+            <span>{{ "🎵 - " + tag }}</span>
+            <span>{{ curSound === tag ? "✔" : "" }}</span>
           </div>
         </div>
       </div>
@@ -40,40 +37,27 @@
             :key="score.name"
             @click="autoPlay(score, index)"
           >
-            {{ Number(index) + 1 + " - " + score.name }}
+            <span>{{ Number(index) + 1 + " - " + score.name }}</span>
+            <span>{{ scoreIndex === index ? "✔" : "" }}</span>
           </div>
         </div>
       </div>
     </div>
-    <!-- 播放、停止 -->
-    <div class="play btn" @click="play">
-      <span>{{ isPlay ? "⏸️ 停止" : "▶️ 播放" }}</span>
-    </div>
-    <!-- 按下颜色 -->
-    <div class="diff btn" @click="diff">
-      <span>💅 {{ diffFlag ? "关闭" : "开启" }}按下颜色</span>
-    </div>
-    <!-- 左手 -->
-    <div class="left btn" @click="setLeftFlag">
-      <span>👈 {{ leftFlag ? "关闭" : "开启" }}左手</span>
-    </div>
-    <!-- 右手 -->
-    <div class="right btn" @click="setRightFlag">
-      <span>👉 {{ rightFlag ? "关闭" : "开启" }}右手</span>
-    </div>
-    <!-- 节拍 -->
-    <div class="rhythm btn">
-      <div class="selector">
+    <!-- 进度、播放、停止 -->
+    <div class="progress-bar btn">
+      <span class="play" @click="play">{{ isPlay ? "⏸️ 停止" : "▶️ 播放" }}</span>
+      <div class="progress">
         <el-slider
-          v-model="rhythm"
-          vertical
-          height="20vh"
-          :min="15"
-          :max="300"
-          @change="rhythmChange"
+          v-model="progress"
+          :min="0"
+          :max="maxRhythm"
+          :step="0.125"
+          @input="step"
         ></el-slider>
       </div>
-      <span>👏 节拍</span>
+      <span style="font-weight: bold"
+        >{{ ((progress / maxRhythm) * 100).toFixed(2) }}%</span
+      >
     </div>
     <!-- 音量 -->
     <div class="volume btn">
@@ -87,21 +71,40 @@
           :step="0.05"
           @input="volumeChange"
         ></el-slider>
+        <div class="description">{{ volume }}</div>
       </div>
       <span>{{ volumeEmoji }} 音量</span>
     </div>
-    <!-- 进度 -->
-    <div class="progress-bar btn">
-      <span>🎹 进度：</span>
-      <div class="progress">
+    <!-- 节拍 -->
+    <div class="rhythm btn">
+      <div class="selector">
         <el-slider
-          v-model="progress"
-          :min="0"
-          :max="maxRhythm"
-          :step="0.125"
-          @input="step"
+          v-model="rhythm"
+          vertical
+          height="20vh"
+          :min="15"
+          :max="300"
+          @change="rhythmChange"
         ></el-slider>
+        <div class="description">{{ rhythm }}</div>
       </div>
+      <span>👏 节拍</span>
+    </div>
+    <!-- 按下颜色 -->
+    <div class="diff btn" @click="diff">
+      <span>🎹 {{ diffFlag ? "关闭" : "开启" }}按键颜色</span>
+    </div>
+    <!-- 音符 -->
+    <div class="show-key btn" @click="showKey">
+      <span>🎼 {{ isShowKey ? "隐藏音符" : "显示音符" }}</span>
+    </div>
+    <!-- 左手 -->
+    <div class="left btn" @click="setLeftFlag">
+      <span>{{ leftFlag ? "💤 关闭" : "👈 开启" }}左手</span>
+    </div>
+    <!-- 右手 -->
+    <div class="right btn" @click="setRightFlag">
+      <span>{{ rightFlag ? "💤 关闭" : "👉 开启" }}右手</span>
     </div>
     <!---->
   </div>
@@ -133,7 +136,7 @@ export default {
       scoreIndex: -1,
       tags_map: Object.freeze({ ...tags_map }),
       progress: 0, // 进度条
-      maxRhythm: 0, // 进度条上限
+      maxRhythm: 9999999, // 进度条上限
     };
   },
   created() {
@@ -166,7 +169,11 @@ export default {
         auto.sound = tag;
       }
       this.$emit("changeSound", tag);
-      load(tag, (sum) => (this.residue = sum), (residue) => (this.residue = residue));
+      load(
+        tag,
+        (sum) => (this.residue = sum),
+        (residue) => (this.residue = residue)
+      );
     },
     // 自动弹奏
     autoPlay(score, index) {
@@ -273,14 +280,13 @@ export default {
 
     &:hover {
       color: #fff;
-      background: rgba(187, 204, 170, 0.35);
+      background: rgba(230, 255, 206, 0.35);
     }
   }
   /** 按钮 end */
 
   /** 选择框 start */
   .selector {
-    display: none;
     position: absolute;
     top: calc(-40vh - 0.6vw - 20px);
     left: 0;
@@ -293,6 +299,9 @@ export default {
     text-shadow: #ccc 1px 1px;
     border-radius: 6px;
     box-shadow: 2px 2px 5px rgb(0, 0, 0, 25%);
+    transition: all 0.2s;
+    visibility: hidden;
+    opacity: 0;
 
     &::after {
       content: "";
@@ -308,12 +317,13 @@ export default {
       position: absolute;
       left: 0;
       right: 0;
-      bottom: -0.4vw;
-      height: 0.4vw;
+      bottom: -0.6vw;
+      height: 0.6vw;
     }
 
     &:hover {
-      display: block;
+      visibility: visible;
+      opacity: 1;
     }
 
     .title {
@@ -330,6 +340,8 @@ export default {
       overflow: auto;
 
       .item {
+        display: flex;
+        justify-content: space-between;
         padding: 0.4vw;
         margin-bottom: 0.4vw;
         background: rgb(248, 248, 248);
@@ -354,20 +366,31 @@ export default {
   .sound-select,
   .auto-play {
     &:hover > .selector {
-      display: block;
+      visibility: visible;
+      opacity: 1;
     }
   }
 
   .rhythm,
   .volume {
     .selector {
-      top: calc(-20vh - 0.4vw - 40px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      top: calc(-20vh - 0.4vw - 40px - 3vh);
       width: 100%;
       height: auto;
       padding: 20px 3px;
+
+      .description {
+        height: 2vh;
+        line-height: 2vh;
+        margin-top: 1vh;
+      }
     }
     &:hover > .selector {
-      display: block;
+      visibility: visible;
+      opacity: 1;
     }
   }
 
@@ -376,10 +399,36 @@ export default {
     display: flex;
     align-items: center;
 
+    .play {
+      position: absolute;
+      left: 0vw;
+      display: flex;
+      align-items: center;
+      height: 100%;
+      cursor: pointer;
+      width: 50px;
+      padding: 0 0.8vw;
+    }
+
     .progress {
       flex: 1;
-      padding: 0 1vw;
+      padding: 0 2vw;
+      margin-left: calc(50px + 0.8vw + 1px);
     }
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: calc(50px + 1.6vw + 1px);
+      width: 1px;
+      background: #898;
+    }
+  }
+
+  .diff, .show-key, .left, .right {
+    cursor: pointer;
   }
 }
 
