@@ -192,6 +192,7 @@ export default {
           stop: (key) => this.$emit("stop", key),
           change: (progress) => (this.progress = progress),
           end: () => this.play(),
+          rhythm: (rhythm) => this.rhythm = rhythm
         }
       );
       auto.leftVolume = score.leftVolume;
@@ -234,6 +235,7 @@ export default {
     rhythmChange(newRhythm) {
       if (!this.isDefineAuto()) return;
 
+      auto.autoRhythmFlag = false
       auto.rhythm = newRhythm;
     },
     // 改变音量

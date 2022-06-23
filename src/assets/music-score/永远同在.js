@@ -2,7 +2,7 @@
 export const 永远同在 = {
   name: '永远同在-木村弓',
   rhythm: 110,
-  leftVolume: 0.4,
+  leftVolume: 0.6,
   rightVolume: 0.6,
   left: [
     // 0
