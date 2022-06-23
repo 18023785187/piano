@@ -2,7 +2,7 @@
 export const 菊次郎的夏天 = {
   name: '菊次郎的夏天-久石让',
   rhythm: 90,
-  leftVolume: 0.6,
+  leftVolume: 0.4,
   rightVolume: 0.6,
   left: [
     // 0
