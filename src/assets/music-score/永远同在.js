@@ -1,4 +1,4 @@
-
+// 未完成
 export const 永远同在 = {
   name: '永远同在-木村弓',
   rhythm: 110,

@@ -39,9 +39,9 @@ const getBuffer = (url) => {
   const request = new XMLHttpRequest()
   return new Promise((resolve, reject) => {
     request.open('GET', url, true)
-    request.responseType = 'arraybuffer';
+    request.responseType = 'arraybuffer'
     request.onload = () => {
-      audioContext.decodeAudioData(request.response, buffer => buffer ? resolve(buffer) : reject('decoding error'));
+      audioContext.decodeAudioData(request.response, buffer => buffer ? resolve(buffer) : reject('decoding error'))
     }
     request.onerror = error => reject(error)
     request.send()
@@ -106,6 +106,7 @@ export function load(tag, start, update) {
     let currentTime // 当前源播放的起始时间
 
     music[tag][key] = {
+      source: url,
       start(volume = 1) { // 每次播放一个源
         this.stop() // 确保无冲突，先停止上一个源的播放
         currentTime = audioContext.currentTime
