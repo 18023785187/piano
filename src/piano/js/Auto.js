@@ -31,7 +31,7 @@ export class Auto {
    * 设置拍数并计算每拍时长
    */
   set rhythm(newRhythm) {
-    if(this._rhythm === newRhythm) return
+    if (this._rhythm === newRhythm) return
     this._rhythm = newRhythm
     this._rhythmTime = Math.floor((60 / this._rhythm) * 1000)
     this._hooks?.rhythm?.(this._rhythm)
@@ -54,11 +54,11 @@ export class Auto {
       let progress = 0 // 进度累加
       const rhythmMap = [] // 节拍映射，在大于或等于特定进度时变换节拍
       for (let i = 0; i < hand.length; ++i) {
-        if(hand[i][4]) rhythmMap.push([progress, hand[i][4]]) // 节拍对应的进度数
+        if (hand[i][4]) rhythmMap.push([progress, hand[i][4]]) // 节拍对应的进度数
         player[progress] = [[...hand[i][1]], (hand[i][2] ? hand[i][2] : hand[i][0]), hand[i][3]]
         progress += hand[i][0]
       }
-      if(!rhythmMap.length || rhythmMap[0][0] !== 0) rhythmMap.unshift([0, startRhythm])
+      if (!rhythmMap.length || rhythmMap[0][0] !== 0) rhythmMap.unshift([0, startRhythm])
 
       return {
         volume: 1, // 该谱的音量
@@ -66,8 +66,8 @@ export class Auto {
         player: player, // 播放器
         maxRhythm: progress, // 最大累加拍数
         rhythmChange: () => {
-          for(let i = rhythmMap.length - 1; i >= 0; --i) {
-            if(self._progress >= rhythmMap[i][0]) {
+          for (let i = rhythmMap.length - 1; i >= 0; --i) {
+            if (self._progress >= rhythmMap[i][0]) {
               self.rhythm = rhythmMap[i][1]
               break
             }
@@ -85,8 +85,6 @@ export class Auto {
    * 播放音乐
    */
   play() {
-    if (this._progress == null) this.progress = 0
-
     this._timer = setTimeout(() => {
       if (this._progress >= this.maxRhythm) { // 播放结束
         this._progress = null
@@ -94,7 +92,7 @@ export class Auto {
         return
       }
 
-      this.progress = this._progress + STEP
+      this.progress = this._progress == null ? 0 : this._progress + STEP
       this._hooks?.change?.(this._progress)
       this.play()
     }, Math.floor(this._rhythmTime * STEP))
