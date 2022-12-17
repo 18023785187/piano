@@ -2,7 +2,7 @@
 export const 完 = {
   name: '完-陈奕迅',
   rhythm: 65,
-  leftVolume: 0.4,
+  leftVolume: 0.24,
   rightVolume: 0.6,
   left: [
     // 0

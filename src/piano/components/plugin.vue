@@ -140,7 +140,7 @@ export default {
     };
   },
   created() {
-    this.changeSound("经典钢琴");
+    this.changeSound("施坦威钢琴");
   },
   computed: {
     // 音量 emoji
